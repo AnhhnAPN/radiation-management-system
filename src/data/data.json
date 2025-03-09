@@ -1,0 +1,24 @@
+{
+  "employees": [
+    {
+      "id": "1",
+      "name": "Nguyễn Văn A",
+      "employeeId": "NV001",
+      "department": "Phòng Kỹ thuật",
+      "position": "Kỹ sư",
+      "dateOfBirth": "1990-01-15",
+      "joinDate": "2020-03-01",
+      "contactInfo": "0123456789"
+    }
+  ],
+  "dosimeters": [
+    {
+      "id": "1",
+      "serialNumber": "DOS-001",
+      "assignedTo": "Nguyễn Văn A",
+      "lastCalibrationDate": "2024-02-01",
+      "nextCalibrationDate": "2024-08-01",
+      "status": "active"
+    }
+  ]
+} 
