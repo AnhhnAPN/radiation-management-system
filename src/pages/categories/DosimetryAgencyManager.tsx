@@ -1,12 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import CategoryManager from '../../components/CategoryManager';
-import {
-  getAllDosimetryAgencies,
-  addDosimetryAgency,
-  updateDosimetryAgency,
-  deleteDosimetryAgency,
-  type DosimetryAgency
-} from '../../services/dataService';
+import { dataService } from '../../services/dataService';
+import type { DosimetryAgency } from '../../types/categories';
 
 const DosimetryAgencyManager: React.FC = () => {
   const [agencies, setAgencies] = useState<DosimetryAgency[]>([]);
@@ -16,7 +11,7 @@ const DosimetryAgencyManager: React.FC = () => {
   }, []);
 
   const loadAgencies = () => {
-    const data = getAllDosimetryAgencies();
+    const data = dataService.getAllDosimetryAgencies();
     setAgencies(data);
   };
 
@@ -47,15 +42,15 @@ const DosimetryAgencyManager: React.FC = () => {
       items={agencies}
       fields={fields}
       onAdd={(agency) => {
-        addDosimetryAgency(agency as DosimetryAgency);
+        dataService.addDosimetryAgency(agency as DosimetryAgency);
         loadAgencies();
       }}
       onUpdate={(id, agency) => {
-        updateDosimetryAgency(id, agency as DosimetryAgency);
+        dataService.updateDosimetryAgency(id, agency as DosimetryAgency);
         loadAgencies();
       }}
       onDelete={(id) => {
-        deleteDosimetryAgency(id);
+        dataService.deleteDosimetryAgency(id);
         loadAgencies();
       }}
     />

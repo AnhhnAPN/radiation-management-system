@@ -1,12 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import CategoryManager from '../../components/CategoryManager';
-import {
-  getAllEquipmentTypes,
-  addEquipmentType,
-  updateEquipmentType,
-  deleteEquipmentType,
-  type EquipmentType
-} from '../../services/dataService';
+import { dataService } from '../../services/dataService';
+import type { EquipmentType } from '../../types/categories';
 
 const EquipmentTypeManager: React.FC = () => {
   const [types, setTypes] = useState<EquipmentType[]>([]);
@@ -16,7 +11,7 @@ const EquipmentTypeManager: React.FC = () => {
   }, []);
 
   const loadTypes = () => {
-    const data = getAllEquipmentTypes();
+    const data = dataService.getAllEquipmentTypes();
     setTypes(data);
   };
 
@@ -35,15 +30,15 @@ const EquipmentTypeManager: React.FC = () => {
       items={types}
       fields={fields}
       onAdd={(type) => {
-        addEquipmentType(type as EquipmentType);
+        dataService.addEquipmentType(type as EquipmentType);
         loadTypes();
       }}
       onUpdate={(id, type) => {
-        updateEquipmentType(id, type as EquipmentType);
+        dataService.updateEquipmentType(id, type as EquipmentType);
         loadTypes();
       }}
       onDelete={(id) => {
-        deleteEquipmentType(id);
+        dataService.deleteEquipmentType(id);
         loadTypes();
       }}
     />

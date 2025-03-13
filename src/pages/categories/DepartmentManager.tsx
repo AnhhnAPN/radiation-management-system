@@ -1,12 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import CategoryManager from '../../components/CategoryManager';
-import {
-  getAllDepartments,
-  addDepartment,
-  updateDepartment,
-  deleteDepartment,
-  type Department
-} from '../../services/dataService';
+import { dataService } from '../../services/dataService';
+import type { Department } from '../../services/dataService';
 
 const DepartmentManager: React.FC = () => {
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -16,7 +11,7 @@ const DepartmentManager: React.FC = () => {
   }, []);
 
   const loadDepartments = () => {
-    const data = getAllDepartments();
+    const data = dataService.getAllDepartments();
     setDepartments(data);
   };
 
@@ -35,15 +30,15 @@ const DepartmentManager: React.FC = () => {
       items={departments}
       fields={fields}
       onAdd={(department) => {
-        addDepartment(department as Department);
+        dataService.addDepartment(department as Department);
         loadDepartments();
       }}
       onUpdate={(id, department) => {
-        updateDepartment(id, department as Department);
+        dataService.updateDepartment(id, department as Department);
         loadDepartments();
       }}
       onDelete={(id) => {
-        deleteDepartment(id);
+        dataService.deleteDepartment(id);
         loadDepartments();
       }}
     />

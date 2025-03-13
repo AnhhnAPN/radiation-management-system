@@ -1,12 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import CategoryManager from '../../components/CategoryManager';
-import {
-  getAllRadiationSources,
-  addRadiationSource,
-  updateRadiationSource,
-  deleteRadiationSource,
-  type RadiationSource
-} from '../../services/dataService';
+import { dataService } from '../../services/dataService';
+import type { RadiationSource } from '../../types/categories';
 
 const RadiationSourceManager: React.FC = () => {
   const [sources, setSources] = useState<RadiationSource[]>([]);
@@ -16,7 +11,7 @@ const RadiationSourceManager: React.FC = () => {
   }, []);
 
   const loadSources = () => {
-    const data = getAllRadiationSources();
+    const data = dataService.getAllRadiationSources();
     setSources(data);
   };
 
@@ -47,15 +42,15 @@ const RadiationSourceManager: React.FC = () => {
       items={sources}
       fields={fields}
       onAdd={(source) => {
-        addRadiationSource(source as RadiationSource);
+        dataService.addRadiationSource(source as RadiationSource);
         loadSources();
       }}
       onUpdate={(id, source) => {
-        updateRadiationSource(id, source as RadiationSource);
+        dataService.updateRadiationSource(id, source as RadiationSource);
         loadSources();
       }}
       onDelete={(id) => {
-        deleteRadiationSource(id);
+        dataService.deleteRadiationSource(id);
         loadSources();
       }}
     />

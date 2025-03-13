@@ -1,22 +1,11 @@
-export interface Department {
-  id: string;
-  code: string;
-  name: string;
-}
-
-export interface Position {
-  id: string;
-  code: string;
-  name: string;
-}
+export type Department = 'Phòng Kỹ thuật' | 'Phòng Hành chính' | 'Phòng Kế hoạch' | 'Phòng Tài chính';
+export type Position = 'Kỹ sư' | 'Cán bộ' | 'Trưởng phòng' | 'Phó phòng';
 
 export interface Employee {
   id: string;
   code: string;
   name: string;
   departmentId: string;
-  department?: Department;
   positionId: string;
-  position?: Position;
   startDate: string;
 } 

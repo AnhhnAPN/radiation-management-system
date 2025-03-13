@@ -1,14 +1,50 @@
-import type { Employee, Department, Position } from '../types/employee';
-import type {
-  Dosimeter,
-  TrainingUnit,
-  DosimetryAgency,
-  RadiationSource,
-  EquipmentType
-} from '../types/categories';
+import { TrainingUnit, DosimetryAgency, RadiationSource, EquipmentType } from '../types/categories';
 import initialData from '../data/data.json';
 
+export interface User {
+  id: string;
+  username: string;
+  password: string;
+  fullName: string;
+  email: string;
+  role: 'admin' | 'user';
+}
+
+export interface Department {
+  id: string;
+  code: string;
+  name: string;
+}
+
+export interface Position {
+  id: string;
+  code: string;
+  name: string;
+}
+
+export interface Employee {
+  id: string;
+  code: string;
+  name: string;
+  departmentId: string;
+  positionId: string;
+  startDate: string;
+}
+
+export interface Dosimeter {
+  id: string;
+  code: string;
+  name: string;
+  serialNumber: string;
+  assignedTo: string;
+  lastCalibrationDate: string;
+  nextCalibrationDate: string;
+  status: 'active' | 'inactive' | 'maintenance';
+  description: string;
+}
+
 interface AppData {
+  users: User[];
   departments: Department[];
   positions: Position[];
   employees: Employee[];
@@ -19,227 +55,332 @@ interface AppData {
   equipmentTypes: EquipmentType[];
 }
 
-let data: AppData = loadFromStorage() || (initialData as AppData);
-
 // Hàm đọc dữ liệu từ localStorage
-function loadFromStorage(): AppData | null {
-  try {
-    const savedData = localStorage.getItem('radiationManagementData');
-    return savedData ? JSON.parse(savedData) : null;
-  } catch (error) {
-    console.error('Error loading data from localStorage:', error);
-    return null;
-  }
-}
+const loadFromStorage = (): AppData | null => {
+  const savedData = localStorage.getItem('radiation_management_data');
+  return savedData ? JSON.parse(savedData) : null;
+};
 
 // Hàm lưu dữ liệu vào localStorage
-function saveToStorage(): void {
-  try {
-    localStorage.setItem('radiationManagementData', JSON.stringify(data));
-  } catch (error) {
-    console.error('Error saving data to localStorage:', error);
-  }
-}
-
-// Department services
-export const getAllDepartments = (): Department[] => data.departments;
-
-export const addDepartment = (department: Department): void => {
-  data.departments.push(department);
-  saveToStorage();
+const saveToStorage = (appData: AppData): void => {
+  localStorage.setItem('radiation_management_data', JSON.stringify(appData));
 };
 
-export const updateDepartment = (id: string, updatedDepartment: Department): void => {
-  const index = data.departments.findIndex(dept => dept.id === id);
-  if (index !== -1) {
-    data.departments[index] = updatedDepartment;
-    saveToStorage();
-  }
+// Hàm chuyển đổi dữ liệu từ initialData sang AppData
+const convertInitialData = (data: any): AppData => {
+  // Đảm bảo có dữ liệu người dùng
+  const users = data.users || [
+    {
+      id: "1",
+      username: "admin",
+      password: "admin123",
+      fullName: "Administrator",
+      email: "admin@example.com",
+      role: "admin"
+    },
+    {
+      id: "2",
+      username: "user",
+      password: "user123",
+      fullName: "Normal User",
+      email: "user@example.com",
+      role: "user"
+    }
+  ];
+
+  return {
+    ...data,
+    users,
+    dosimeters: (data.dosimeters || []).map((d: any) => ({
+      ...d,
+      status: d.status as 'active' | 'inactive' | 'maintenance' || 'active'
+    }))
+  };
 };
 
-export const deleteDepartment = (id: string): void => {
-  const index = data.departments.findIndex(dept => dept.id === id);
-  if (index !== -1) {
-    data.departments.splice(index, 1);
-    saveToStorage();
-  }
-};
+// Khởi tạo dữ liệu
+const appData: AppData = loadFromStorage() || convertInitialData(initialData);
 
-// Position services
-export const getAllPositions = (): Position[] => data.positions;
+export const dataService = {
+  // Reset dữ liệu về mặc định
+  resetData: (): void => {
+    localStorage.removeItem('radiation_management_data');
+    localStorage.removeItem('radiation_management_user');
+    window.location.reload();
+  },
 
-export const addPosition = (position: Position): void => {
-  data.positions.push(position);
-  saveToStorage();
-};
+  // Đăng nhập
+  login: (username: string, password: string): User => {
+    const user = appData.users.find(
+      (u) => u.username === username && u.password === password
+    );
+    if (!user) throw new Error('Invalid username or password');
+    return user;
+  },
 
-export const updatePosition = (id: string, updatedPosition: Position): void => {
-  const index = data.positions.findIndex(pos => pos.id === id);
-  if (index !== -1) {
-    data.positions[index] = updatedPosition;
-    saveToStorage();
-  }
-};
+  // Lấy thông tin người dùng theo ID
+  getUserById: (id: string): User | undefined => {
+    return appData.users.find((u) => u.id === id);
+  },
 
-export const deletePosition = (id: string): void => {
-  const index = data.positions.findIndex(pos => pos.id === id);
-  if (index !== -1) {
-    data.positions.splice(index, 1);
-    saveToStorage();
-  }
-};
+  // Cập nhật thông tin người dùng
+  updateUserProfile: (id: string, profile: Partial<User>): void => {
+    const index = appData.users.findIndex((u) => u.id === id);
+    if (index === -1) throw new Error('User not found');
+    
+    // Không cho phép thay đổi role qua hàm này
+    const { role, ...updateData } = profile;
+    appData.users[index] = { ...appData.users[index], ...updateData };
+    saveToStorage(appData);
+  },
 
-// Employee services
-export const getAllEmployees = (): Employee[] => {
-  return data.employees.map(emp => ({
-    ...emp,
-    department: data.departments.find(d => d.id === emp.departmentId),
-    position: data.positions.find(p => p.id === emp.positionId)
-  }));
-};
+  // Đổi mật khẩu
+  changePassword: (id: string, currentPassword: string, newPassword: string): void => {
+    const index = appData.users.findIndex((u) => u.id === id);
+    if (index === -1) throw new Error('User not found');
+    
+    if (appData.users[index].password !== currentPassword) {
+      throw new Error('Current password is incorrect');
+    }
+    
+    appData.users[index].password = newPassword;
+    saveToStorage(appData);
+  },
 
-export const addEmployee = (employee: Employee): void => {
-  data.employees.push(employee);
-  saveToStorage();
-};
+  // Lấy danh sách nhân viên
+  getAllEmployees: (): Employee[] => {
+    return appData.employees;
+  },
 
-export const updateEmployee = (id: string, updatedEmployee: Employee): void => {
-  const index = data.employees.findIndex(emp => emp.id === id);
-  if (index !== -1) {
-    data.employees[index] = updatedEmployee;
-    saveToStorage();
-  }
-};
+  // Thêm nhân viên mới
+  addEmployee: (employee: Employee): void => {
+    appData.employees.push(employee);
+    saveToStorage(appData);
+  },
 
-export const deleteEmployee = (id: string): void => {
-  const index = data.employees.findIndex(emp => emp.id === id);
-  if (index !== -1) {
-    data.employees.splice(index, 1);
-    saveToStorage();
-  }
-};
+  // Cập nhật thông tin nhân viên
+  updateEmployee: (id: string, employee: Employee): void => {
+    const index = appData.employees.findIndex((e) => e.id === id);
+    if (index === -1) throw new Error('Employee not found');
+    appData.employees[index] = employee;
+    saveToStorage(appData);
+  },
 
-// Dosimeter services
-export const getAllDosimeters = (): Dosimeter[] => {
-  return data.dosimeters.map(dosimeter => ({
-    ...dosimeter,
-    assignedToName: data.employees.find(emp => emp.id === dosimeter.assignedTo)?.name
-  }));
-};
+  // Xóa nhân viên
+  deleteEmployee: (id: string): void => {
+    const index = appData.employees.findIndex((e) => e.id === id);
+    if (index === -1) throw new Error('Employee not found');
+    appData.employees.splice(index, 1);
+    saveToStorage(appData);
+  },
 
-export const addDosimeter = (dosimeter: Dosimeter): void => {
-  data.dosimeters.push(dosimeter);
-  saveToStorage();
-};
+  // Import danh sách nhân viên từ file Excel
+  importEmployees: (newEmployees: Employee[]): void => {
+    appData.employees = [...appData.employees, ...newEmployees];
+    saveToStorage(appData);
+  },
 
-export const updateDosimeter = (id: string, updatedDosimeter: Dosimeter): void => {
-  const index = data.dosimeters.findIndex(d => d.id === id);
-  if (index !== -1) {
-    data.dosimeters[index] = updatedDosimeter;
-    saveToStorage();
-  }
-};
+  // Export danh sách nhân viên ra file Excel
+  exportEmployees: (): Blob => {
+    const data = JSON.stringify(appData.employees, null, 2);
+    return new Blob([data], { type: 'application/json' });
+  },
 
-export const deleteDosimeter = (id: string): void => {
-  const index = data.dosimeters.findIndex(d => d.id === id);
-  if (index !== -1) {
-    data.dosimeters.splice(index, 1);
-    saveToStorage();
-  }
-};
+  // Lấy danh sách liều kế
+  getAllDosimeters: (): Dosimeter[] => {
+    return appData.dosimeters || [];
+  },
 
-// Training Unit services
-export const getAllTrainingUnits = (): TrainingUnit[] => data.trainingUnits;
+  // Thêm liều kế mới
+  addDosimeter: (dosimeter: Dosimeter): void => {
+    if (!appData.dosimeters) {
+      appData.dosimeters = [];
+    }
+    appData.dosimeters.push(dosimeter);
+    saveToStorage(appData);
+  },
 
-export const addTrainingUnit = (unit: TrainingUnit): void => {
-  data.trainingUnits.push(unit);
-  saveToStorage();
-};
+  // Cập nhật thông tin liều kế
+  updateDosimeter: (id: string, dosimeter: Dosimeter): void => {
+    if (!appData.dosimeters) {
+      appData.dosimeters = [];
+    }
+    const index = appData.dosimeters.findIndex((d) => d.id === id);
+    if (index === -1) throw new Error('Dosimeter not found');
+    appData.dosimeters[index] = dosimeter;
+    saveToStorage(appData);
+  },
 
-export const updateTrainingUnit = (id: string, updatedUnit: TrainingUnit): void => {
-  const index = data.trainingUnits.findIndex(u => u.id === id);
-  if (index !== -1) {
-    data.trainingUnits[index] = updatedUnit;
-    saveToStorage();
-  }
-};
+  // Xóa liều kế
+  deleteDosimeter: (id: string): void => {
+    if (!appData.dosimeters) {
+      appData.dosimeters = [];
+    }
+    const index = appData.dosimeters.findIndex((d) => d.id === id);
+    if (index === -1) throw new Error('Dosimeter not found');
+    appData.dosimeters.splice(index, 1);
+    saveToStorage(appData);
+  },
 
-export const deleteTrainingUnit = (id: string): void => {
-  const index = data.trainingUnits.findIndex(u => u.id === id);
-  if (index !== -1) {
-    data.trainingUnits.splice(index, 1);
-    saveToStorage();
-  }
-};
+  // Lấy danh sách phòng ban
+  getAllDepartments: (): Department[] => {
+    return appData.departments;
+  },
 
-// Dosimetry Agency services
-export const getAllDosimetryAgencies = (): DosimetryAgency[] => data.dosimetryAgencies;
+  // Thêm phòng ban mới
+  addDepartment: (department: Department): void => {
+    appData.departments.push(department);
+    saveToStorage(appData);
+  },
 
-export const addDosimetryAgency = (agency: DosimetryAgency): void => {
-  data.dosimetryAgencies.push(agency);
-  saveToStorage();
-};
+  // Cập nhật thông tin phòng ban
+  updateDepartment: (id: string, department: Department): void => {
+    const index = appData.departments.findIndex((d) => d.id === id);
+    if (index === -1) throw new Error('Department not found');
+    appData.departments[index] = department;
+    saveToStorage(appData);
+  },
 
-export const updateDosimetryAgency = (id: string, updatedAgency: DosimetryAgency): void => {
-  const index = data.dosimetryAgencies.findIndex(a => a.id === id);
-  if (index !== -1) {
-    data.dosimetryAgencies[index] = updatedAgency;
-    saveToStorage();
-  }
-};
+  // Xóa phòng ban
+  deleteDepartment: (id: string): void => {
+    const index = appData.departments.findIndex((d) => d.id === id);
+    if (index === -1) throw new Error('Department not found');
+    appData.departments.splice(index, 1);
+    saveToStorage(appData);
+  },
 
-export const deleteDosimetryAgency = (id: string): void => {
-  const index = data.dosimetryAgencies.findIndex(a => a.id === id);
-  if (index !== -1) {
-    data.dosimetryAgencies.splice(index, 1);
-    saveToStorage();
-  }
-};
+  // Lấy danh sách chức vụ
+  getAllPositions: (): Position[] => {
+    return appData.positions;
+  },
 
-// Radiation Source services
-export const getAllRadiationSources = (): RadiationSource[] => data.radiationSources;
+  // Thêm chức vụ mới
+  addPosition: (position: Position): void => {
+    appData.positions.push(position);
+    saveToStorage(appData);
+  },
 
-export const addRadiationSource = (source: RadiationSource): void => {
-  data.radiationSources.push(source);
-  saveToStorage();
-};
+  // Cập nhật thông tin chức vụ
+  updatePosition: (id: string, position: Position): void => {
+    const index = appData.positions.findIndex((p) => p.id === id);
+    if (index === -1) throw new Error('Position not found');
+    appData.positions[index] = position;
+    saveToStorage(appData);
+  },
 
-export const updateRadiationSource = (id: string, updatedSource: RadiationSource): void => {
-  const index = data.radiationSources.findIndex(s => s.id === id);
-  if (index !== -1) {
-    data.radiationSources[index] = updatedSource;
-    saveToStorage();
-  }
-};
+  // Xóa chức vụ
+  deletePosition: (id: string): void => {
+    const index = appData.positions.findIndex((p) => p.id === id);
+    if (index === -1) throw new Error('Position not found');
+    appData.positions.splice(index, 1);
+    saveToStorage(appData);
+  },
 
-export const deleteRadiationSource = (id: string): void => {
-  const index = data.radiationSources.findIndex(s => s.id === id);
-  if (index !== -1) {
-    data.radiationSources.splice(index, 1);
-    saveToStorage();
-  }
-};
+  // Lấy danh sách đơn vị đào tạo
+  getAllTrainingUnits: (): TrainingUnit[] => {
+    return appData.trainingUnits;
+  },
 
-// Equipment Type services
-export const getAllEquipmentTypes = (): EquipmentType[] => data.equipmentTypes;
+  // Thêm đơn vị đào tạo mới
+  addTrainingUnit: (unit: TrainingUnit): void => {
+    appData.trainingUnits.push(unit);
+    saveToStorage(appData);
+  },
 
-export const addEquipmentType = (type: EquipmentType): void => {
-  data.equipmentTypes.push(type);
-  saveToStorage();
-};
+  // Cập nhật thông tin đơn vị đào tạo
+  updateTrainingUnit: (id: string, unit: TrainingUnit): void => {
+    const index = appData.trainingUnits.findIndex((u) => u.id === id);
+    if (index === -1) throw new Error('Training unit not found');
+    appData.trainingUnits[index] = unit;
+    saveToStorage(appData);
+  },
 
-export const updateEquipmentType = (id: string, updatedType: EquipmentType): void => {
-  const index = data.equipmentTypes.findIndex(t => t.id === id);
-  if (index !== -1) {
-    data.equipmentTypes[index] = updatedType;
-    saveToStorage();
-  }
-};
+  // Xóa đơn vị đào tạo
+  deleteTrainingUnit: (id: string): void => {
+    const index = appData.trainingUnits.findIndex((u) => u.id === id);
+    if (index === -1) throw new Error('Training unit not found');
+    appData.trainingUnits.splice(index, 1);
+    saveToStorage(appData);
+  },
 
-export const deleteEquipmentType = (id: string): void => {
-  const index = data.equipmentTypes.findIndex(t => t.id === id);
-  if (index !== -1) {
-    data.equipmentTypes.splice(index, 1);
-    saveToStorage();
+  // Lấy danh sách cơ quan đo liều
+  getAllDosimetryAgencies: (): DosimetryAgency[] => {
+    return appData.dosimetryAgencies;
+  },
+
+  // Thêm cơ quan đo liều mới
+  addDosimetryAgency: (agency: DosimetryAgency): void => {
+    appData.dosimetryAgencies.push(agency);
+    saveToStorage(appData);
+  },
+
+  // Cập nhật thông tin cơ quan đo liều
+  updateDosimetryAgency: (id: string, agency: DosimetryAgency): void => {
+    const index = appData.dosimetryAgencies.findIndex((a) => a.id === id);
+    if (index === -1) throw new Error('Dosimetry agency not found');
+    appData.dosimetryAgencies[index] = agency;
+    saveToStorage(appData);
+  },
+
+  // Xóa cơ quan đo liều
+  deleteDosimetryAgency: (id: string): void => {
+    const index = appData.dosimetryAgencies.findIndex((a) => a.id === id);
+    if (index === -1) throw new Error('Dosimetry agency not found');
+    appData.dosimetryAgencies.splice(index, 1);
+    saveToStorage(appData);
+  },
+
+  // Lấy danh sách nguồn phóng xạ
+  getAllRadiationSources: (): RadiationSource[] => {
+    return appData.radiationSources;
+  },
+
+  // Thêm nguồn phóng xạ mới
+  addRadiationSource: (source: RadiationSource): void => {
+    appData.radiationSources.push(source);
+    saveToStorage(appData);
+  },
+
+  // Cập nhật thông tin nguồn phóng xạ
+  updateRadiationSource: (id: string, source: RadiationSource): void => {
+    const index = appData.radiationSources.findIndex((s) => s.id === id);
+    if (index === -1) throw new Error('Radiation source not found');
+    appData.radiationSources[index] = source;
+    saveToStorage(appData);
+  },
+
+  // Xóa nguồn phóng xạ
+  deleteRadiationSource: (id: string): void => {
+    const index = appData.radiationSources.findIndex((s) => s.id === id);
+    if (index === -1) throw new Error('Radiation source not found');
+    appData.radiationSources.splice(index, 1);
+    saveToStorage(appData);
+  },
+
+  // Lấy danh sách loại thiết bị
+  getAllEquipmentTypes: (): EquipmentType[] => {
+    return appData.equipmentTypes;
+  },
+
+  // Thêm loại thiết bị mới
+  addEquipmentType: (type: EquipmentType): void => {
+    appData.equipmentTypes.push(type);
+    saveToStorage(appData);
+  },
+
+  // Cập nhật thông tin loại thiết bị
+  updateEquipmentType: (id: string, type: EquipmentType): void => {
+    const index = appData.equipmentTypes.findIndex((t) => t.id === id);
+    if (index === -1) throw new Error('Equipment type not found');
+    appData.equipmentTypes[index] = type;
+    saveToStorage(appData);
+  },
+
+  // Xóa loại thiết bị
+  deleteEquipmentType: (id: string): void => {
+    const index = appData.equipmentTypes.findIndex((t) => t.id === id);
+    if (index === -1) throw new Error('Equipment type not found');
+    appData.equipmentTypes.splice(index, 1);
+    saveToStorage(appData);
   }
 }; 

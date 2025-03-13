@@ -1,12 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import CategoryManager from '../../components/CategoryManager';
-import {
-  getAllTrainingUnits,
-  addTrainingUnit,
-  updateTrainingUnit,
-  deleteTrainingUnit,
-  type TrainingUnit
-} from '../../services/dataService';
+import { dataService } from '../../services/dataService';
+import type { TrainingUnit } from '../../types/categories';
 
 const TrainingUnitManager: React.FC = () => {
   const [units, setUnits] = useState<TrainingUnit[]>([]);
@@ -16,7 +11,7 @@ const TrainingUnitManager: React.FC = () => {
   }, []);
 
   const loadUnits = () => {
-    const data = getAllTrainingUnits();
+    const data = dataService.getAllTrainingUnits();
     setUnits(data);
   };
 
@@ -41,15 +36,15 @@ const TrainingUnitManager: React.FC = () => {
       items={units}
       fields={fields}
       onAdd={(unit) => {
-        addTrainingUnit(unit as TrainingUnit);
+        dataService.addTrainingUnit(unit as TrainingUnit);
         loadUnits();
       }}
       onUpdate={(id, unit) => {
-        updateTrainingUnit(id, unit as TrainingUnit);
+        dataService.updateTrainingUnit(id, unit as TrainingUnit);
         loadUnits();
       }}
       onDelete={(id) => {
-        deleteTrainingUnit(id);
+        dataService.deleteTrainingUnit(id);
         loadUnits();
       }}
     />

@@ -1,12 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import CategoryManager from '../../components/CategoryManager';
-import {
-  getAllPositions,
-  addPosition,
-  updatePosition,
-  deletePosition,
-  type Position
-} from '../../services/dataService';
+import { dataService } from '../../services/dataService';
+import type { Position } from '../../services/dataService';
 
 const PositionManager: React.FC = () => {
   const [positions, setPositions] = useState<Position[]>([]);
@@ -16,7 +11,7 @@ const PositionManager: React.FC = () => {
   }, []);
 
   const loadPositions = () => {
-    const data = getAllPositions();
+    const data = dataService.getAllPositions();
     setPositions(data);
   };
 
@@ -35,15 +30,15 @@ const PositionManager: React.FC = () => {
       items={positions}
       fields={fields}
       onAdd={(position) => {
-        addPosition(position as Position);
+        dataService.addPosition(position as Position);
         loadPositions();
       }}
       onUpdate={(id, position) => {
-        updatePosition(id, position as Position);
+        dataService.updatePosition(id, position as Position);
         loadPositions();
       }}
       onDelete={(id) => {
-        deletePosition(id);
+        dataService.deletePosition(id);
         loadPositions();
       }}
     />

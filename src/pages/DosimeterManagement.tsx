@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { getAllDosimeters, addDosimeter, updateDosimeter, deleteDosimeter, getAllEmployees } from '../services/dataService';
+import { dataService } from '../services/dataService';
 import type { Dosimeter } from '../types/categories';
 import type { Employee } from '../types/employee';
 
+interface DosimeterWithName extends Dosimeter {
+  assignedToName: string;
+}
+
 const DosimeterManagement: React.FC = () => {
-  const [dosimeters, setDosimeters] = useState<Dosimeter[]>([]);
+  const [dosimeters, setDosimeters] = useState<DosimeterWithName[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentDosimeter, setCurrentDosimeter] = useState<Dosimeter | null>(null);
@@ -15,16 +19,16 @@ const DosimeterManagement: React.FC = () => {
   }, []);
 
   const loadDosimeters = () => {
-    const data = getAllDosimeters();
+    const data = dataService.getAllDosimeters();
     const dosimetersWithNames = data.map(d => ({
       ...d,
-      assignedToName: employees.find(e => e.id === d.assignedTo)?.name
+      assignedToName: employees.find(e => e.id === d.assignedTo)?.name || 'Chưa gán'
     }));
     setDosimeters(dosimetersWithNames);
   };
 
   const loadEmployees = () => {
-    const data = getAllEmployees();
+    const data = dataService.getAllEmployees();
     setEmployees(data);
   };
 
@@ -52,9 +56,9 @@ const DosimeterManagement: React.FC = () => {
     e.preventDefault();
     if (currentDosimeter) {
       if (dosimeters.some(d => d.id === currentDosimeter.id)) {
-        updateDosimeter(currentDosimeter.id, currentDosimeter);
+        dataService.updateDosimeter(currentDosimeter.id, currentDosimeter);
       } else {
-        addDosimeter(currentDosimeter);
+        dataService.addDosimeter(currentDosimeter);
       }
       loadDosimeters();
       handleCloseModal();
@@ -63,7 +67,7 @@ const DosimeterManagement: React.FC = () => {
 
   const handleDelete = (id: string) => {
     if (window.confirm('Bạn có chắc chắn muốn xóa liều kế này?')) {
-      deleteDosimeter(id);
+      dataService.deleteDosimeter(id);
       loadDosimeters();
     }
   };
@@ -104,7 +108,7 @@ const DosimeterManagement: React.FC = () => {
               dosimeters.map((dosimeter) => (
                 <tr key={dosimeter.id}>
                   <td className="px-6 py-4 whitespace-nowrap">{dosimeter.serialNumber}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{dosimeter.assignedToName || 'Chưa gán'}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{dosimeter.assignedToName}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{dosimeter.lastCalibrationDate}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{dosimeter.nextCalibrationDate}</td>
                   <td className="px-6 py-4 whitespace-nowrap">

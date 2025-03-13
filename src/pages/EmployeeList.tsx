@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Search, Upload } from 'lucide-react';
 import * as XLSX from 'xlsx';
-import { getAllEmployees, addEmployee, updateEmployee, deleteEmployee, importEmployees } from '../services/dataService';
+import { dataService } from '../services/dataService';
 
 interface EmployeeFormData {
   id: string;
@@ -25,8 +25,17 @@ const EmployeeList: React.FC = () => {
   }, []);
 
   const loadEmployees = () => {
-    const data = getAllEmployees();
-    setEmployees(data);
+    const data = dataService.getAllEmployees();
+    setEmployees(data.map(emp => ({
+      id: emp.id,
+      name: emp.name,
+      employeeId: emp.code,
+      department: emp.departmentId,
+      position: emp.positionId,
+      dateOfBirth: '',
+      joinDate: emp.startDate,
+      contactInfo: '',
+    })));
   };
 
   const handleOpenModal = (employee: EmployeeFormData | null = null) => {
@@ -51,10 +60,19 @@ const EmployeeList: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (currentEmployee) {
+      const employee = {
+        id: currentEmployee.id,
+        code: currentEmployee.employeeId,
+        name: currentEmployee.name,
+        departmentId: currentEmployee.department,
+        positionId: currentEmployee.position,
+        startDate: currentEmployee.joinDate,
+      };
+
       if (employees.some(emp => emp.id === currentEmployee.id)) {
-        updateEmployee(currentEmployee.id, currentEmployee);
+        dataService.updateEmployee(currentEmployee.id, employee);
       } else {
-        addEmployee(currentEmployee);
+        dataService.addEmployee(employee);
       }
       loadEmployees();
       handleCloseModal();
@@ -73,7 +91,7 @@ const EmployeeList: React.FC = () => {
 
   const handleDeleteEmployee = (id: string) => {
     if (window.confirm('Bạn có chắc chắn muốn xóa nhân viên này?')) {
-      deleteEmployee(id);
+      dataService.deleteEmployee(id);
       loadEmployees();
     }
   };
@@ -93,16 +111,14 @@ const EmployeeList: React.FC = () => {
 
         const importedEmployees = jsonData.map((row: any) => ({
           id: crypto.randomUUID(),
+          code: row['Mã NV'] || '',
           name: row['Họ tên'] || '',
-          employeeId: row['Mã NV'] || '',
-          department: row['Phòng ban'] || '',
-          position: row['Chức vụ'] || '',
-          dateOfBirth: row['Ngày sinh'] || '',
-          joinDate: row['Ngày vào làm'] || '',
-          contactInfo: row['Liên hệ'] || ''
+          departmentId: row['Phòng ban'] || '',
+          positionId: row['Chức vụ'] || '',
+          startDate: row['Ngày vào làm'] || '',
         }));
 
-        importEmployees(importedEmployees);
+        dataService.importEmployees(importedEmployees);
         loadEmployees();
         alert(`Đã import thành công ${importedEmployees.length} nhân viên`);
       } catch (error) {
@@ -248,111 +264,114 @@ const EmployeeList: React.FC = () => {
                   : 'Thêm nhân viên mới'}
               </h3>
             </div>
-            <form onSubmit={handleSubmit}>
-              <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Họ tên
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={currentEmployee.name}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Mã nhân viên
-                  </label>
-                  <input
-                    type="text"
-                    name="employeeId"
-                    value={currentEmployee.employeeId}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Phòng ban
-                  </label>
-                  <input
-                    type="text"
-                    name="department"
-                    value={currentEmployee.department}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Chức vụ
-                  </label>
-                  <input
-                    type="text"
-                    name="position"
-                    value={currentEmployee.position}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Ngày sinh
-                  </label>
-                  <input
-                    type="date"
-                    name="dateOfBirth"
-                    value={currentEmployee.dateOfBirth}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Ngày vào làm
-                  </label>
-                  <input
-                    type="date"
-                    name="joinDate"
-                    value={currentEmployee.joinDate}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                    required
-                  />
-                </div>
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Thông tin liên hệ
-                  </label>
-                  <input
-                    type="text"
-                    name="contactInfo"
-                    value={currentEmployee.contactInfo}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                    required
-                  />
-                </div>
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              <div>
+                <label htmlFor="employeeId" className="block text-sm font-medium text-gray-700">
+                  Mã nhân viên
+                </label>
+                <input
+                  type="text"
+                  id="employeeId"
+                  name="employeeId"
+                  value={currentEmployee.employeeId}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  required
+                />
               </div>
-              <div className="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+              <div>
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                  Họ tên
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  value={currentEmployee.name}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="department" className="block text-sm font-medium text-gray-700">
+                  Phòng ban
+                </label>
+                <input
+                  type="text"
+                  id="department"
+                  name="department"
+                  value={currentEmployee.department}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="position" className="block text-sm font-medium text-gray-700">
+                  Chức vụ
+                </label>
+                <input
+                  type="text"
+                  id="position"
+                  name="position"
+                  value={currentEmployee.position}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="dateOfBirth" className="block text-sm font-medium text-gray-700">
+                  Ngày sinh
+                </label>
+                <input
+                  type="date"
+                  id="dateOfBirth"
+                  name="dateOfBirth"
+                  value={currentEmployee.dateOfBirth}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                />
+              </div>
+              <div>
+                <label htmlFor="joinDate" className="block text-sm font-medium text-gray-700">
+                  Ngày vào làm
+                </label>
+                <input
+                  type="date"
+                  id="joinDate"
+                  name="joinDate"
+                  value={currentEmployee.joinDate}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="contactInfo" className="block text-sm font-medium text-gray-700">
+                  Thông tin liên hệ
+                </label>
+                <input
+                  type="text"
+                  id="contactInfo"
+                  name="contactInfo"
+                  value={currentEmployee.contactInfo}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                />
+              </div>
+              <div className="flex justify-end space-x-3">
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                 >
                   Hủy
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700"
+                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                 >
                   {employees.some((emp) => emp.id === currentEmployee.id) ? 'Cập nhật' : 'Thêm mới'}
                 </button>

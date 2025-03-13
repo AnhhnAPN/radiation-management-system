@@ -1,113 +1,183 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useState } from 'react';
+import { NavLink } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import {
-  LayoutDashboard,
+  Home,
   Users,
   Activity,
-  GraduationCap,
   FileText,
-  Gauge,
+  BookOpen,
+  Settings,
   ChevronDown,
   ChevronRight,
-  Building2,
-  School,
-  Building,
-  Atom,
-  Cpu,
-  UserRound
 } from 'lucide-react';
 
-const Sidebar: React.FC = () => {
-  const location = useLocation();
+interface SidebarProps {
+  isOpen: boolean;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
+  const { user } = useAuth();
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
+  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
 
-  // Tự động mở menu danh mục khi đang ở trang danh mục
-  useEffect(() => {
-    if (location.pathname.startsWith('/categories')) {
-      setIsCategoryOpen(true);
+  const navLinkClass = ({ isActive }: { isActive: boolean }) =>
+    `flex items-center px-4 py-2 text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-colors relative ${
+      isActive ? 'bg-indigo-50 text-indigo-600' : ''
+    }`;
+
+  const renderTooltip = (text: string) => {
+    if (!isOpen && hoveredItem === text) {
+      return (
+        <div className="absolute left-full ml-2 px-2 py-1 bg-gray-800 text-white text-sm rounded whitespace-nowrap z-50">
+          {text}
+        </div>
+      );
     }
-  }, [location.pathname]);
-
-  const isActive = (path: string) => {
-    return location.pathname === path;
+    return null;
   };
-
-  const isInCategory = () => {
-    return location.pathname.startsWith('/categories');
-  };
-
-  const menuItems = [
-    { path: '/', icon: LayoutDashboard, label: 'Tổng quan' },
-    { path: '/employees', icon: Users, label: 'Quản lý Nhân viên' },
-    { path: '/radiation-data', icon: Activity, label: 'Dữ liệu Bức xạ' },
-    { path: '/training', icon: GraduationCap, label: 'Đào tạo An toàn' },
-    { path: '/reports', icon: FileText, label: 'Báo cáo' },
-    { path: '/dosimeters', icon: Gauge, label: 'Quản lý Liều kế' },
-  ];
-
-  const categoryItems = [
-    { path: '/categories/departments', icon: Building2, label: 'Phòng ban' },
-    { path: '/categories/training-units', icon: School, label: 'Đơn vị Đào tạo' },
-    { path: '/categories/dosimetry-agencies', icon: Building, label: 'Cơ quan Đo liều' },
-    { path: '/categories/radiation-sources', icon: Atom, label: 'Nguồn phóng xạ' },
-    { path: '/categories/equipment-types', icon: Cpu, label: 'Loại thiết bị' },
-    { path: '/categories/positions', icon: UserRound, label: 'Chức vụ' },
-  ];
 
   return (
-    <div className="w-64 bg-white border-r border-gray-200 overflow-y-auto">
-      <div className="p-6">
-        <h1 className="text-2xl font-bold text-gray-800">Quản lý ATBX</h1>
+    <aside
+      className={`bg-white shadow-sm transition-all duration-300 ${
+        isOpen ? 'w-64' : 'w-16'
+      } flex flex-col fixed h-screen z-30`}
+    >
+      <div className="p-4">
+        <h1 className={`font-bold text-xl text-gray-800 ${!isOpen && 'hidden'}`}>
+          Quản lý bức xạ
+        </h1>
       </div>
-      <nav className="mt-2">
-        {menuItems.map((item) => (
-          <Link
-            key={item.path}
-            to={item.path}
-            className={`flex items-center px-6 py-3 text-gray-700 hover:bg-gray-50 ${
-              isActive(item.path) ? 'bg-indigo-50 text-indigo-600' : ''
-            }`}
-          >
-            <item.icon className="w-5 h-5 mr-3" />
-            <span>{item.label}</span>
-          </Link>
-        ))}
 
-        <div className="mt-4">
-          <button
-            onClick={() => setIsCategoryOpen(!isCategoryOpen)}
-            className={`flex items-center w-full px-6 py-3 text-gray-700 hover:bg-gray-50 ${
-              isInCategory() ? 'bg-indigo-50 text-indigo-600' : ''
-            }`}
+      <nav className="flex-1 overflow-y-auto">
+        <div className="px-2 space-y-1">
+          <NavLink 
+            to="/" 
+            className={navLinkClass} 
+            end
+            onMouseEnter={() => setHoveredItem('Trang chủ')}
+            onMouseLeave={() => setHoveredItem(null)}
           >
-            <span className="flex-1 flex items-center">
-              <Building2 className="w-5 h-5 mr-3" />
-              <span>Danh mục</span>
-            </span>
-            {isCategoryOpen ? (
-              <ChevronDown className="w-4 h-4" />
-            ) : (
-              <ChevronRight className="w-4 h-4" />
-            )}
-          </button>
+            <Home size={20} />
+            {isOpen && <span className="ml-3">Trang chủ</span>}
+            {renderTooltip('Trang chủ')}
+          </NavLink>
 
-          <div className={`bg-gray-50 ${isCategoryOpen ? 'block' : 'hidden'}`}>
-            {categoryItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`flex items-center px-6 py-2 pl-12 text-gray-700 hover:bg-gray-100 ${
-                  isActive(item.path) ? 'bg-indigo-50 text-indigo-600' : ''
+          <NavLink 
+            to="/employees" 
+            className={navLinkClass}
+            onMouseEnter={() => setHoveredItem('Nhân viên')}
+            onMouseLeave={() => setHoveredItem(null)}
+          >
+            <Users size={20} />
+            {isOpen && <span className="ml-3">Nhân viên</span>}
+            {renderTooltip('Nhân viên')}
+          </NavLink>
+
+          <NavLink 
+            to="/dosimeters" 
+            className={navLinkClass}
+            onMouseEnter={() => setHoveredItem('Liều kế')}
+            onMouseLeave={() => setHoveredItem(null)}
+          >
+            <Activity size={20} />
+            {isOpen && <span className="ml-3">Liều kế</span>}
+            {renderTooltip('Liều kế')}
+          </NavLink>
+
+          <NavLink 
+            to="/radiation-data" 
+            className={navLinkClass}
+            onMouseEnter={() => setHoveredItem('Dữ liệu bức xạ')}
+            onMouseLeave={() => setHoveredItem(null)}
+          >
+            <FileText size={20} />
+            {isOpen && <span className="ml-3">Dữ liệu bức xạ</span>}
+            {renderTooltip('Dữ liệu bức xạ')}
+          </NavLink>
+
+          <NavLink 
+            to="/training" 
+            className={navLinkClass}
+            onMouseEnter={() => setHoveredItem('Đào tạo')}
+            onMouseLeave={() => setHoveredItem(null)}
+          >
+            <BookOpen size={20} />
+            {isOpen && <span className="ml-3">Đào tạo</span>}
+            {renderTooltip('Đào tạo')}
+          </NavLink>
+
+          {user?.role === 'admin' && (
+            <div>
+              <button
+                onClick={() => setIsCategoryOpen(!isCategoryOpen)}
+                className={`w-full flex items-center px-4 py-2 text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-colors relative ${
+                  isCategoryOpen ? 'bg-indigo-50 text-indigo-600' : ''
                 }`}
+                onMouseEnter={() => setHoveredItem('Danh mục')}
+                onMouseLeave={() => setHoveredItem(null)}
               >
-                <item.icon className="w-4 h-4 mr-3" />
-                <span className="text-sm">{item.label}</span>
-              </Link>
-            ))}
-          </div>
+                <Settings size={20} />
+                {isOpen && (
+                  <>
+                    <span className="ml-3">Danh mục</span>
+                    <span className="ml-auto">
+                      {isCategoryOpen ? (
+                        <ChevronDown size={16} />
+                      ) : (
+                        <ChevronRight size={16} />
+                      )}
+                    </span>
+                  </>
+                )}
+                {renderTooltip('Danh mục')}
+              </button>
+
+              {isOpen && isCategoryOpen && (
+                <div className="pl-4 mt-1 space-y-1">
+                  <NavLink
+                    to="/categories/departments"
+                    className={navLinkClass}
+                  >
+                    <span className="ml-7">Phòng ban</span>
+                  </NavLink>
+                  <NavLink
+                    to="/categories/positions"
+                    className={navLinkClass}
+                  >
+                    <span className="ml-7">Chức vụ</span>
+                  </NavLink>
+                  <NavLink
+                    to="/categories/training-units"
+                    className={navLinkClass}
+                  >
+                    <span className="ml-7">Đơn vị đào tạo</span>
+                  </NavLink>
+                  <NavLink
+                    to="/categories/dosimetry-agencies"
+                    className={navLinkClass}
+                  >
+                    <span className="ml-7">Cơ quan đo liều</span>
+                  </NavLink>
+                  <NavLink
+                    to="/categories/radiation-sources"
+                    className={navLinkClass}
+                  >
+                    <span className="ml-7">Nguồn phóng xạ</span>
+                  </NavLink>
+                  <NavLink
+                    to="/categories/equipment-types"
+                    className={navLinkClass}
+                  >
+                    <span className="ml-7">Loại thiết bị</span>
+                  </NavLink>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </nav>
-    </div>
+    </aside>
   );
 };
 
