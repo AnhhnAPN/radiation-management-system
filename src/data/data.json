@@ -1,24 +1,146 @@
 {
+  "departments": [
+    { "id": "1", "code": "IT", "name": "Phòng CNTT" },
+    { "id": "2", "code": "HR", "name": "Phòng Nhân sự" },
+    { "id": "3", "code": "ACC", "name": "Phòng Kế toán" },
+    { "id": "4", "code": "RAD", "name": "Phòng Xạ trị" },
+    { "id": "5", "code": "DIAG", "name": "Phòng Chẩn đoán hình ảnh" }
+  ],
+  "positions": [
+    { "id": "1", "code": "DEV", "name": "Lập trình viên" },
+    { "id": "2", "code": "PM", "name": "Quản lý dự án" },
+    { "id": "3", "code": "HR", "name": "Nhân sự" },
+    { "id": "4", "code": "RAD_TECH", "name": "Kỹ thuật viên xạ trị" },
+    { "id": "5", "code": "DOCTOR", "name": "Bác sĩ" },
+    { "id": "6", "code": "NURSE", "name": "Y tá" }
+  ],
   "employees": [
     {
       "id": "1",
+      "code": "NV001",
       "name": "Nguyễn Văn A",
-      "employeeId": "NV001",
-      "department": "Phòng Kỹ thuật",
-      "position": "Kỹ sư",
-      "dateOfBirth": "1990-01-15",
-      "joinDate": "2020-03-01",
-      "contactInfo": "0123456789"
+      "departmentId": "4",
+      "positionId": "4",
+      "startDate": "2023-01-15"
+    },
+    {
+      "id": "2",
+      "code": "NV002", 
+      "name": "Trần Thị B",
+      "departmentId": "5",
+      "positionId": "5",
+      "startDate": "2023-02-20"
+    },
+    {
+      "id": "3",
+      "code": "NV003",
+      "name": "Lê Văn C",
+      "departmentId": "4",
+      "positionId": "6",
+      "startDate": "2023-03-10"
     }
   ],
   "dosimeters": [
     {
       "id": "1",
-      "serialNumber": "DOS-001",
-      "assignedTo": "Nguyễn Văn A",
+      "code": "DOS001",
+      "name": "Liều kế cá nhân A",
+      "serialNumber": "LK001",
+      "assignedTo": "1",
+      "lastCalibrationDate": "2024-01-01",
+      "nextCalibrationDate": "2024-07-01",
+      "status": "active",
+      "description": "Đo liều bức xạ cá nhân cho nhân viên xạ trị"
+    },
+    {
+      "id": "2",
+      "code": "DOS002",
+      "name": "Liều kế cá nhân B",
+      "serialNumber": "LK002",
+      "assignedTo": "2",
+      "lastCalibrationDate": "2024-01-15",
+      "nextCalibrationDate": "2024-07-15",
+      "status": "active",
+      "description": "Đo liều bức xạ cá nhân cho bác sĩ"
+    },
+    {
+      "id": "3",
+      "code": "DOS003",
+      "name": "Liều kế cá nhân C",
+      "serialNumber": "LK003",
+      "assignedTo": "3",
       "lastCalibrationDate": "2024-02-01",
       "nextCalibrationDate": "2024-08-01",
-      "status": "active"
+      "status": "maintenance",
+      "description": "Đo liều bức xạ cá nhân cho y tá"
+    }
+  ],
+  "trainingUnits": [
+    {
+      "id": "1",
+      "code": "TU001",
+      "name": "Trung tâm đào tạo ATBX số 1",
+      "description": "Chuyên đào tạo an toàn bức xạ khu vực phía Bắc"
+    },
+    {
+      "id": "2",
+      "code": "TU002",
+      "name": "Trung tâm đào tạo ATBX số 2",
+      "description": "Chuyên đào tạo an toàn bức xạ khu vực phía Nam"
+    }
+  ],
+  "dosimetryAgencies": [
+    {
+      "id": "1",
+      "code": "DA001",
+      "name": "Viện Nghiên cứu Hạt nhân Đà Lạt",
+      "description": "Đơn vị đo liều khu vực miền Nam"
+    },
+    {
+      "id": "2",
+      "code": "DA002",
+      "name": "Viện ATBX và Hạt nhân Hà Nội",
+      "description": "Đơn vị đo liều khu vực miền Bắc"
+    }
+  ],
+  "radiationSources": [
+    {
+      "id": "1",
+      "code": "RS001",
+      "name": "Máy gia tốc tuyến tính",
+      "description": "Thiết bị xạ trị ung thư"
+    },
+    {
+      "id": "2",
+      "code": "RS002",
+      "name": "Máy X-quang",
+      "description": "Thiết bị chụp X-quang chẩn đoán"
+    },
+    {
+      "id": "3",
+      "code": "RS003",
+      "name": "Máy CT Scanner",
+      "description": "Thiết bị chụp cắt lớp vi tính"
+    }
+  ],
+  "equipmentTypes": [
+    {
+      "id": "1",
+      "code": "ET001",
+      "name": "Thiết bị đo liều",
+      "description": "Các loại thiết bị đo liều bức xạ"
+    },
+    {
+      "id": "2",
+      "code": "ET002",
+      "name": "Thiết bị điều trị",
+      "description": "Các loại thiết bị dùng trong điều trị"
+    },
+    {
+      "id": "3",
+      "code": "ET003",
+      "name": "Thiết bị chẩn đoán",
+      "description": "Các loại thiết bị dùng trong chẩn đoán"
     }
   ]
 } 

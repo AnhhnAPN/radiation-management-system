@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Plus, Edit, Trash2 } from 'lucide-react';
 
 interface CategoryItem {
@@ -14,8 +14,9 @@ interface CategoryManagerProps {
   fields: {
     key: string;
     label: string;
-    type: 'text' | 'textarea' | 'date';
+    type: 'text' | 'textarea' | 'date' | 'select';
     required?: boolean;
+    options?: { value: string; label: string }[];
   }[];
   onAdd: (item: CategoryItem) => void;
   onUpdate: (id: string, item: CategoryItem) => void;
@@ -205,6 +206,20 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({
                           className="w-full px-3 py-2 border border-gray-300 rounded-md"
                           required={field.required}
                         />
+                      ) : field.type === 'select' ? (
+                        <select
+                          value={currentItem[field.key]}
+                          onChange={(e) => handleInputChange(field.key, e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                          required={field.required}
+                        >
+                          <option value="">-- Chọn --</option>
+                          {field.options?.map(option => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
                       ) : (
                         <input
                           type={field.type}
