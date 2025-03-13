@@ -1,37 +1,44 @@
 import React, { useState, useEffect } from 'react';
-import { getAllDosimeters, addDosimeter, updateDosimeter, deleteDosimeter } from '../services/dataService';
-
-interface Dosimeter {
-  id: string;
-  serialNumber: string;
-  assignedTo: string;
-  lastCalibrationDate: string;
-  nextCalibrationDate: string;
-  status: 'active' | 'inactive' | 'maintenance';
-}
+import { getAllDosimeters, addDosimeter, updateDosimeter, deleteDosimeter, getAllEmployees } from '../services/dataService';
+import type { Dosimeter } from '../types/categories';
+import type { Employee } from '../types/employee';
 
 const DosimeterManagement: React.FC = () => {
   const [dosimeters, setDosimeters] = useState<Dosimeter[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentDosimeter, setCurrentDosimeter] = useState<Dosimeter | null>(null);
 
   useEffect(() => {
     loadDosimeters();
+    loadEmployees();
   }, []);
 
   const loadDosimeters = () => {
     const data = getAllDosimeters();
-    setDosimeters(data);
+    const dosimetersWithNames = data.map(d => ({
+      ...d,
+      assignedToName: employees.find(e => e.id === d.assignedTo)?.name
+    }));
+    setDosimeters(dosimetersWithNames);
+  };
+
+  const loadEmployees = () => {
+    const data = getAllEmployees();
+    setEmployees(data);
   };
 
   const handleOpenModal = (dosimeter: Dosimeter | null = null) => {
     setCurrentDosimeter(dosimeter || {
       id: crypto.randomUUID(),
+      code: '',
+      name: '',
       serialNumber: '',
       assignedTo: '',
       lastCalibrationDate: '',
       nextCalibrationDate: '',
-      status: 'active'
+      status: 'active',
+      description: ''
     });
     setIsModalOpen(true);
   };
@@ -97,7 +104,7 @@ const DosimeterManagement: React.FC = () => {
               dosimeters.map((dosimeter) => (
                 <tr key={dosimeter.id}>
                   <td className="px-6 py-4 whitespace-nowrap">{dosimeter.serialNumber}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{dosimeter.assignedTo}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{dosimeter.assignedToName || 'Chưa gán'}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{dosimeter.lastCalibrationDate}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{dosimeter.nextCalibrationDate}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -159,14 +166,20 @@ const DosimeterManagement: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Người Được Gán
                   </label>
-                  <input
-                    type="text"
+                  <select
                     name="assignedTo"
                     value={currentDosimeter.assignedTo}
                     onChange={(e) => setCurrentDosimeter({...currentDosimeter, assignedTo: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md"
                     required
-                  />
+                  >
+                    <option value="">-- Chọn nhân viên --</option>
+                    {employees.map(employee => (
+                      <option key={employee.id} value={employee.id}>
+                        {employee.name} - {employee.code}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">

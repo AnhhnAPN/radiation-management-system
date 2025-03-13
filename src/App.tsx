@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
-import EmployeeList from './pages/EmployeeList';
+import EmployeeManager from './pages/employees/EmployeeManager';
 import RadiationData from './pages/RadiationData';
 import TrainingCourses from './pages/TrainingCourses';
 import RadiationReports from './pages/RadiationReports';
@@ -22,7 +22,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<Dashboard />} />
-            <Route path="employees" element={<EmployeeList />} />
+            <Route path="employees" element={<EmployeeManager />} />
             <Route path="radiation-data" element={<RadiationData />} />
             <Route path="training" element={<TrainingCourses />} />
             <Route path="reports" element={<RadiationReports />} />
